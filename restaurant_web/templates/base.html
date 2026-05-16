@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>{% block title %}Yummy Restaurant{% endblock %}</title>
+  <meta name="description" content="Автоматизация работы сотрудников ресторана">
+  <meta name="keywords" content="ресторан, меню, заказы, сотрудники">
+
+  <!-- Favicons -->
+  <link href="{{ static('img/favicon.png') }}" rel="icon">
+  <link href="{{ static('img/apple-touch-icon.png') }}" rel="apple-touch-icon">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com" rel="preconnect">
+  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Inter:wght@100;200;300;400;500;600;700;800;900&family=Amatic+SC:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{{ static('vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ static('vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ static('vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ static('vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
+  <link href="{{ static('vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
+
+  <!-- Main CSS File -->
+  <link href="{{ static('css/main.css') }}" rel="stylesheet">
+  
+  <style>
+    /* Custom styles for admin/staff views */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        color: #fff;
+    }
+    .staff-section {
+        padding: 60px 0;
+        background-color: #0b0b0b;
+        color: #fff;
+        min-height: 80vh;
+    }
+    .btn-yummy {
+        background-color: var(--accent-color);
+        color: #fff;
+        border-radius: 50px;
+        padding: 8px 25px;
+        border: none;
+        transition: 0.3s;
+    }
+    .btn-yummy:hover {
+        background-color: rgba(206, 18, 18, 0.8);
+    }
+    .alert-container {
+        position: fixed;
+        top: 100px;
+        right: 20px;
+        z-index: 9999;
+        max-width: 400px;
+    }
+    .dish-img-placeholder,
+    .hero-placeholder,
+    .about-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        background: linear-gradient(135deg, rgba(206, 18, 18, 0.15), rgba(0, 0, 0, 0.08));
+        border: 1px dashed rgba(206, 18, 18, 0.35); 
+        color: var(--accent-color, #ce1212);
+        min-height: 180px;
+    }
+    .dish-img-placeholder i,
+    .about-placeholder i {
+        font-size: 2.5rem;
+        opacity: 0.7;
+    }
+    .hero-placeholder {
+        min-height: 280px;
+        padding: 2rem;
+    }
+    .hero-placeholder i {
+        font-size: 4rem;
+        margin-bottom: 0.5rem;
+    }
+    .stats-bg-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.85));
+        z-index: 0;
+    }
+    #stats .container {
+        z-index: 1;
+    }
+    .stats-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--accent-color, #ce1212);
+        display: block;
+    }
+  </style>
+
+  {% block extra_css %}{% endblock %}
+</head>
+
+<body class="index-page">
+
+  <header id="header" class="header d-flex align-items-center sticky-top">
+    <div class="container position-relative d-flex align-items-center justify-content-between">
+
+      <a href="{{ url('public_home') }}" class="logo d-flex align-items-center me-auto me-xl-0">
+        <h1>Yummy<span>.</span></h1>
+      </a>
+
+      <nav id="navmenu" class="navmenu">
+        <ul>
+          <li><a href="{{ url('public_home') }}">Главная</a></li>
+          <li><a href="{{ url('public_menu') }}">Меню</a></li>
+          
+          {% if request.session.access_token %}
+            <li><a href="{{ url('dashboard') }}">Панель управления</a></li>
+            
+            <li class="dropdown"><a href="#"><span>Управление</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+              <ul>
+                {% if perms.can_view_employees %}
+                  <li><a href="{{ url('employee_list') }}">Сотрудники</a></li>
+                {% endif %}
+                {% if perms.can_manage_clients %}
+                  <li><a href="{{ url('client_list') }}">Клиенты</a></li>
+                {% endif %}
+                <li><a href="{{ url('dish_list') }}">Блюда</a></li>
+                <li><a href="{{ url('ingredient_list') }}">Ингредиенты</a></li>
+                <li><a href="{{ url('menu_list') }}">Списки Меню</a></li>
+                <li><a href="{{ url('order_list') }}">Заказы</a></li>
+                {% if perms.can_view_tables %}
+                  <li><a href="{{ url('table_list') }}">Столики</a></li>
+                {% endif %}
+                {% if perms.is_admin %}
+                  <li><a href="{{ url('admin_panel') }}">Админ-панель</a></li>
+                  <li><a href="{{ url('role_list') }}">Роли</a></li>
+                {% endif %}
+              </ul>
+            </li>
+          {% endif %}
+        </ul>
+        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
+      </nav>
+
+      {% if request.session.access_token %}
+        <div class="d-flex align-items-center">
+            <span class="me-3 d-none d-lg-inline text-muted small">Привет, {{ request.session.username }}</span>
+            <a class="btn-getstarted" href="{{ url('logout') }}">Выйти</a>
+        </div>
+      {% else %}
+        <a class="btn-getstarted" href="{{ url('login') }}">Войти</a>
+      {% endif %}
+
+    </div>
+  </header>
+
+  <!-- Flash Messages -->
+  <div class="alert-container">
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer id="footer" class="footer dark-background">
+    <div class="container">
+      <div class="row gy-3">
+        <div class="col-lg-3 col-md-6 d-flex">
+          <i class="bi bi-geo-alt icon"></i>
+          <div class="address">
+            <h4>Адрес</h4>
+            <p>Улица Вкусная, 123</p>
+            <p>Москва, Россия</p>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 d-flex">
+          <i class="bi bi-telephone icon"></i>
+          <div>
+            <h4>Контакты</h4>
+            <p>
+              <strong>Телефон:</strong> +7 495 123 45 67<br>
+              <strong>Email:</strong> info@yummy.ru<br>
+            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6 d-flex">
+          <i class="bi bi-clock icon"></i>
+          <div>
+            <h4>Часы работы</h4>
+            <p>
+              <strong>Пн-Сб:</strong> 11:00 - 23:00<br>
+              <strong>Вс:</strong> Закрыто
+            </p>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <h4>Мы в соцсетях</h4>
+          <div class="social-links d-flex">
+            <a href="#" class="twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container copyright text-center mt-4">
+      <p>© <span>Copyright</span> <strong class="px-1 sitename">Yummy</strong> <span>All Rights Reserved</span></p>
+      <div class="credits">
+        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll Top -->
+  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+  <!-- Preloader -->
+  <div id="preloader"></div>
+
+  <!-- Vendor JS Files -->
+  <script src="{{ static('vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ static('vendor/aos/aos.js') }}"></script>
+  <script src="{{ static('vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ static('vendor/purecounter/purecounter_vanilla.js') }}"></script>
+  <script src="{{ static('vendor/swiper/swiper-bundle.min.js') }}"></script>
+  <script src="{{ static('vendor/php-email-form/validate.js') }}"></script>
+
+  <!-- Main JS File -->
+  <script src="{{ static('js/main.js') }}"></script>
+
+  {% block extra_js %}{% endblock %}
+</body>
+
+</html>

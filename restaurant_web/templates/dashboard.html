@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Панель управления - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title">
+      <h2>Панель управления</h2>
+      <p>Добро пожаловать, {{ request.session.username }}!</p>
+    </div>
+
+    <div class="row gy-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="glass-card text-center h-100">
+          <i class="bi bi-people mb-3" style="font-size: 2rem; color: var(--accent-color);"></i>
+          <h3>{{ clients|length }}</h3>
+          <p>Клиентов</p>
+          {% if perms.can_manage_clients %}
+            <a href="{{ url('client_list') }}" class="btn btn-sm btn-outline-light">Управление</a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass-card text-center h-100">
+          <i class="bi bi-cart-check mb-3" style="font-size: 2rem; color: var(--accent-color);"></i>
+          <h3>{{ orders|length }}</h3>
+          <p>Заказов</p>
+          <a href="{{ url('order_list') }}" class="btn btn-sm btn-outline-light">Список</a>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass-card text-center h-100">
+          <i class="bi bi-egg-fried mb-3" style="font-size: 2rem; color: var(--accent-color);"></i>
+          <h3>{{ dishes|length }}</h3>
+          <p>Блюд</p>
+          <a href="{{ url('dish_list') }}" class="btn btn-sm btn-outline-light">Каталог</a>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="glass-card text-center h-100">
+          <i class="bi bi-currency-exchange mb-3" style="font-size: 2rem; color: var(--accent-color);"></i>
+          <h3>{{ total_revenue|format_price }}</h3>
+          <p>Выручка</p>
+          {% if perms.can_view_employees %}
+            <span class="badge bg-secondary">{{ employees|length }} сотрудников</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="row mt-5 gy-4">
+      <div class="col-lg-8">
+        <div class="glass-card">
+          <h4>Последние заказы</h4>
+          <div class="table-responsive">
+            <table class="table table-dark table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Стол</th>
+                  <th>Позиций</th>
+                  <th>Сумма</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for order in recent_orders %}
+                  <tr>
+                    <td>#{{ order.id }}</td>
+                    <td>{{ order.table_number }}</td>
+                    <td>{{ (order.items or [])|length }}</td>
+                    <td>{{ order.total_price|format_price }}</td>
+                    <td>
+                      <a href="{{ url('order_detail', order_id=order.id) }}" class="text-info" title="Открыть"><i class="bi bi-eye"></i></a>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted">Заказов пока нет</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div class="text-end mt-3 d-flex flex-wrap gap-2 justify-content-end">
+            <a href="{{ url('order_create') }}" class="btn btn-yummy">Создать заказ</a>
+            <a href="{{ url('order_list') }}" class="btn btn-outline-light">Все заказы</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="glass-card h-100">
+          <h4>Быстрые действия</h4>
+          <div class="d-grid gap-3">
+            <a href="{{ url('public_menu') }}" class="btn btn-outline-light text-start"><i class="bi bi-journal-text me-2"></i>Публичное меню</a>
+            {% if perms.can_manage_clients %}
+              <a href="{{ url('client_create') }}" class="btn btn-outline-light text-start"><i class="bi bi-person-plus me-2"></i>Новый клиент</a>
+            {% endif %}
+            {% if perms.can_view_order_statistics %}
+              <a href="{{ url('order_statistics') }}" class="btn btn-outline-light text-start"><i class="bi bi-graph-up me-2"></i>Статистика</a>
+            {% endif %}
+            {% if perms.can_manage_tables %}
+              <a href="{{ url('table_list') }}" class="btn btn-outline-light text-start"><i class="bi bi-table me-2"></i>Назначение столов</a>
+            {% endif %}
+            {% if perms.can_manage_menus %}
+              <a href="{{ url('menu_create') }}" class="btn btn-outline-light text-start"><i class="bi bi-plus-circle me-2"></i>Новое меню</a>
+            {% endif %}
+            {% if is_admin %}
+              <a href="{{ url('admin_panel') }}" class="btn btn-yummy text-start"><i class="bi bi-shield-lock me-2"></i>Админ-панель</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

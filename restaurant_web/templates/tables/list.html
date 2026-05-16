@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Назначение столиков - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2>Назначение столиков</h2>
+      {% if perms.can_manage_tables %}
+        <a href="{{ url('table_create') }}" class="btn btn-yummy">Закрепить официанта</a>
+      {% endif %}
+    </div>
+
+    <div class="glass-card">
+      <div class="table-responsive">
+        <table class="table table-dark table-hover align-middle">
+          <thead>
+            <tr>
+              <th>Номер столика</th>
+              <th>Официант</th>
+              <th>Время назначения</th>
+              <th class="text-end">Действия</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for table in tables %}
+              <tr>
+                <td><span class="badge bg-danger h5 mb-0">Стол #{{ table.table_number }}</span></td>
+                <td>{{ table.employee_name or '---' }}</td>
+                <td class="small text-white-50">{{ table.assignment_date|format_date }}</td>
+                <td class="text-end">
+                  <a href="{{ url('table_detail', assignment_id=table.id) }}" class="btn btn-sm btn-outline-info me-2"><i class="bi bi-eye"></i></a>
+                  {% if perms.can_manage_tables %}
+                    <a href="{{ url('table_update', assignment_id=table.id) }}" class="btn btn-sm btn-outline-warning me-2"><i class="bi bi-pencil"></i></a>
+                    <a href="{{ url('table_delete', assignment_id=table.id) }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></a>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="4" class="text-center">Назначения не найдены</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Меню - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section id="menu" class="menu section">
+  <div class="container section-title" data-aos="fade-up">
+    <h2>Наше Меню</h2>
+    <p><span>Ознакомьтесь с нашим</span> <span class="description-title">Вкусным Меню</span></p>
+  </div>
+
+  <div class="container">
+    {% if not menus %}
+      <div class="text-center py-5" data-aos="fade-up">
+        <p class="text-muted mb-3">Меню пока не сформировано.</p>
+        {% if not api_available %}
+          <p class="small text-warning">Убедитесь, что API запущен (порт 8000).</p>
+        {% endif %}
+        <a href="{{ url('public_dishes') }}" class="btn btn-yummy mt-2">Смотреть все блюда</a>
+      </div>
+    {% else %}
+      <ul class="nav nav-tabs d-flex justify-content-center flex-wrap" data-aos="fade-up" data-aos-delay="100">
+        {% for menu in menus %}
+          <li class="nav-item">
+            <a class="nav-link {{ 'active' if loop.first else '' }}" data-bs-toggle="tab" data-bs-target="#menu-{{ menu.id }}">
+              <h4 class="mb-0">{{ menu.name }}</h4>
+            </a>
+          </li>
+        {% endfor %}
+      </ul>
+
+      <div class="tab-content" data-aos="fade-up" data-aos-delay="200">
+        {% for menu in menus %}
+          <div class="tab-pane fade {{ 'active show' if loop.first else '' }}" id="menu-{{ menu.id }}">
+            <div class="tab-header text-center py-4">
+              <p class="mb-0">Меню</p>
+              <h3>{{ menu.name }}</h3>
+            </div>
+
+            {% if menu.dishes %}
+              <div class="row gy-5">
+                {% for dish in menu.dishes %}
+                  <div class="col-lg-4 menu-item">
+                    <div class="dish-img-placeholder mb-3" aria-hidden="true">
+                      <i class="bi bi-egg-fried"></i>
+                    </div>
+                    <h4>{{ dish.name }}</h4>
+                    <p class="ingredients">{{ dish.description|truncate(80) if dish.description else '—' }}</p>
+                    <p class="price">{{ dish.price|format_price }}</p>
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <p class="text-center text-muted py-4">В этом меню пока нет блюд.</p>
+            {% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

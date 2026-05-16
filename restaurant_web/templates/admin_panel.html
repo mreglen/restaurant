@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+
+{% block title %}Админ-панель - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="section-title">
+      <h2>Административная панель</h2>
+      <p>Управление рестораном: данные, персонал, меню и заказы</p>
+    </div>
+
+    {% if fetch_errors %}
+      <div class="alert alert-warning mb-4" role="alert">
+        <strong>Не удалось загрузить часть данных:</strong>
+        <ul class="mb-0 mt-2">
+          {% for err in fetch_errors %}
+            <li>{{ err }}</li>
+          {% endfor %}
+        </ul>
+        <p class="mb-0 mt-2 small">Проверьте, что API запущен и вы вошли как администратор.</p>
+      </div>
+    {% endif %}
+
+    <!-- Сводка -->
+    <div class="row gy-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="glass-card text-center border-info h-100">
+          <i class="bi bi-person-badge mb-2" style="font-size: 1.5rem; color: #0dcaf0;"></i>
+          <h3 class="text-info mb-0">{{ employees_count }}</h3>
+          <p class="mb-0 small">Сотрудников</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="glass-card text-center border-success h-100">
+          <i class="bi bi-people mb-2" style="font-size: 1.5rem; color: #198754;"></i>
+          <h3 class="text-success mb-0">{{ clients_count }}</h3>
+          <p class="mb-0 small">Клиентов{% if vip_clients_count %} (VIP: {{ vip_clients_count }}){% endif %}</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="glass-card text-center border-warning h-100">
+          <i class="bi bi-cart-check mb-2" style="font-size: 1.5rem; color: #ffc107;"></i>
+          <h3 class="text-warning mb-0">{{ orders_count }}</h3>
+          <p class="mb-0 small">Заказов</p>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="glass-card text-center border-danger h-100">
+          <i class="bi bi-currency-exchange mb-2" style="font-size: 1.5rem; color: #dc3545;"></i>
+          <h3 class="text-danger mb-0">{{ total_revenue|format_price }}</h3>
+          <p class="mb-0 small">Выручка (все заказы)</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card text-center h-100 py-3">
+          <h4 class="mb-0">{{ dishes_count }}</h4>
+          <p class="mb-0 small text-muted">Блюд</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card text-center h-100 py-3">
+          <h4 class="mb-0">{{ menus_count }}</h4>
+          <p class="mb-0 small text-muted">Меню</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card text-center h-100 py-3">
+          <h4 class="mb-0">{{ ingredients_count }}</h4>
+          <p class="mb-0 small text-muted">Ингредиентов</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card text-center h-100 py-3">
+          <h4 class="mb-0">{{ roles_count }}</h4>
+          <p class="mb-0 small text-muted">Ролей</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card text-center h-100 py-3">
+          <h4 class="mb-0">{{ tables_count }}</h4>
+          <p class="mb-0 small text-muted">Назначений столов</p>
+        </div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="glass-card text-center h-100 py-3">
+          <h4 class="mb-0">{{ total_order_items }}</h4>
+          <p class="mb-0 small text-muted">Позиций в заказах</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Быстрые действия -->
+    <div class="glass-card mb-5">
+      <h4 class="mb-3"><i class="bi bi-lightning-charge me-2"></i>Быстрые действия</h4>
+      <div class="row g-2">
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('employee_create') }}" class="btn btn-outline-light w-100 text-start"><i class="bi bi-person-plus me-2"></i>Сотрудник</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('client_create') }}" class="btn btn-outline-light w-100 text-start"><i class="bi bi-person-lines-fill me-2"></i>Клиент</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('role_create') }}" class="btn btn-outline-light w-100 text-start"><i class="bi bi-shield-plus me-2"></i>Роль</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('dish_create') }}" class="btn btn-outline-light w-100 text-start"><i class="bi bi-egg-fried me-2"></i>Блюдо</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('ingredient_create') }}" class="btn btn-outline-light w-100 text-start"><i class="bi bi-basket me-2"></i>Ингредиент</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('menu_create') }}" class="btn btn-outline-light w-100 text-start"><i class="bi bi-journal-plus me-2"></i>Меню</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('order_create') }}" class="btn btn-yummy w-100 text-start"><i class="bi bi-cart-plus me-2"></i>Заказ</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('table_create') }}" class="btn btn-outline-light w-100 text-start"><i class="bi bi-table me-2"></i>Столик</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('order_statistics') }}" class="btn btn-outline-info w-100 text-start"><i class="bi bi-graph-up me-2"></i>Статистика</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('client_purge') }}" class="btn btn-outline-danger w-100 text-start" onclick="return confirm('Удалить всех клиентов?')"><i class="bi bi-trash me-2"></i>Очистить клиентов</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('api_endpoints_catalog') }}" class="btn btn-outline-secondary w-100 text-start"><i class="bi bi-braces me-2"></i>Каталог API</a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-3">
+          <a href="{{ url('dashboard') }}" class="btn btn-outline-secondary w-100 text-start"><i class="bi bi-speedometer2 me-2"></i>Панель управления</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Последние заказы -->
+    <div class="glass-card mb-5">
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <h4 class="mb-0"><i class="bi bi-receipt me-2"></i>Последние заказы</h4>
+        <div class="d-flex gap-2">
+          <a href="{{ url('order_create') }}" class="btn btn-sm btn-yummy">Новый заказ</a>
+          <a href="{{ url('order_list') }}" class="btn btn-sm btn-outline-light">Все заказы</a>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark table-sm table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Стол</th>
+              <th>Клиент</th>
+              <th>Позиций</th>
+              <th>Сумма</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for order in orders_preview %}
+              <tr>
+                <td>#{{ order.id }}</td>
+                <td>{{ order.table_number }}</td>
+                <td>
+                  {% if order.client_id %}
+                    <a href="{{ url('client_detail', client_id=order.client_id) }}" class="text-info">#{{ order.client_id }}</a>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td>{{ (order.items or [])|length }}</td>
+                <td>{{ order.total_price|format_price }}</td>
+                <td class="text-end">
+                  <a href="{{ url('order_detail', order_id=order.id) }}" class="btn btn-sm btn-outline-info" title="Открыть"><i class="bi bi-eye"></i></a>
+                  <a href="{{ url('order_update', order_id=order.id) }}" class="btn btn-sm btn-outline-warning" title="Изменить"><i class="bi bi-pencil"></i></a>
+                </td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">Заказов пока нет</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="row gy-4">
+      <!-- Сотрудники -->
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="bi bi-person-badge me-2"></i>Сотрудники</h4>
+            <div class="d-flex gap-1">
+              <a href="{{ url('employee_create') }}" class="btn btn-sm btn-yummy">+</a>
+              <a href="{{ url('employee_list') }}" class="btn btn-sm btn-outline-light">Все</a>
+            </div>
+          </div>
+          <ul class="list-group list-group-flush bg-transparent">
+            {% for emp in employees_preview %}
+              <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center px-0">
+                <a href="{{ url('employee_detail', employee_id=emp.id) }}" class="text-white text-decoration-none">
+                  {{ emp|person_fio }}
+                  <span class="text-muted small d-block">@{{ emp.username }}</span>
+                </a>
+                <span class="badge bg-secondary">{{ roles_dict.get(emp.role_id, '—') }}</span>
+              </li>
+            {% else %}
+              <li class="list-group-item bg-transparent text-muted border-0 px-0">Нет сотрудников</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Клиенты -->
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="bi bi-people me-2"></i>Клиенты</h4>
+            <div class="d-flex gap-1">
+              <a href="{{ url('client_create') }}" class="btn btn-sm btn-yummy">+</a>
+              <a href="{{ url('client_list') }}" class="btn btn-sm btn-outline-light">Все</a>
+            </div>
+          </div>
+          <ul class="list-group list-group-flush bg-transparent">
+            {% for client in clients_preview %}
+              <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center px-0">
+                <a href="{{ url('client_detail', client_id=client.id) }}" class="text-white text-decoration-none">
+                  {{ client|person_fio }}
+                  {% if client.is_vip %}<span class="badge bg-warning text-dark ms-1">VIP</span>{% endif %}
+                </a>
+                <span class="text-success small">{{ client.bonus_points }} б.</span>
+              </li>
+            {% else %}
+              <li class="list-group-item bg-transparent text-muted border-0 px-0">Нет клиентов</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Блюда -->
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="bi bi-egg-fried me-2"></i>Блюда</h4>
+            <div class="d-flex gap-1">
+              <a href="{{ url('dish_create') }}" class="btn btn-sm btn-yummy">+</a>
+              <a href="{{ url('dish_list') }}" class="btn btn-sm btn-outline-light">Все</a>
+            </div>
+          </div>
+          <ul class="list-group list-group-flush bg-transparent">
+            {% for dish in dishes_preview %}
+              <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center px-0">
+                <a href="{{ url('dish_detail', dish_id=dish.id) }}" class="text-white text-decoration-none">{{ dish.name }}</a>
+                <span>{{ dish.price|format_price }}</span>
+              </li>
+            {% else %}
+              <li class="list-group-item bg-transparent text-muted border-0 px-0">Нет блюд</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Меню -->
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="bi bi-journal-text me-2"></i>Меню</h4>
+            <div class="d-flex gap-1">
+              <a href="{{ url('menu_create') }}" class="btn btn-sm btn-yummy">+</a>
+              <a href="{{ url('menu_list') }}" class="btn btn-sm btn-outline-light">Все</a>
+            </div>
+          </div>
+          <ul class="list-group list-group-flush bg-transparent">
+            {% for menu in menus_preview %}
+              <li class="list-group-item bg-transparent text-white border-secondary d-flex justify-content-between align-items-center px-0">
+                <a href="{{ url('menu_detail', menu_id=menu.id) }}" class="text-white text-decoration-none">{{ menu.name }}</a>
+                <span class="badge bg-secondary">{{ (menu.dish_ids or [])|length }} блюд</span>
+              </li>
+            {% else %}
+              <li class="list-group-item bg-transparent text-muted border-0 px-0">Нет меню</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Ингредиенты -->
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="bi bi-basket me-2"></i>Ингредиенты</h4>
+            <div class="d-flex gap-1">
+              <a href="{{ url('ingredient_create') }}" class="btn btn-sm btn-yummy">+</a>
+              <a href="{{ url('ingredient_list') }}" class="btn btn-sm btn-outline-light">Все</a>
+            </div>
+          </div>
+          <ul class="list-group list-group-flush bg-transparent">
+            {% for ing in ingredients_preview %}
+              <li class="list-group-item bg-transparent text-white border-secondary px-0">
+                <a href="{{ url('ingredient_update', ingredient_id=ing.id) }}" class="text-white text-decoration-none">{{ ing.name }}</a>
+              </li>
+            {% else %}
+              <li class="list-group-item bg-transparent text-muted border-0 px-0">Нет ингредиентов</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Роли -->
+      <div class="col-lg-6">
+        <div class="glass-card h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="bi bi-shield-check me-2"></i>Роли</h4>
+            <div class="d-flex gap-1">
+              <a href="{{ url('role_create') }}" class="btn btn-sm btn-yummy">+</a>
+              <a href="{{ url('role_list') }}" class="btn btn-sm btn-outline-light">Все</a>
+            </div>
+          </div>
+          <ul class="list-group list-group-flush bg-transparent">
+            {% for role in roles_preview %}
+              <li class="list-group-item bg-transparent text-white border-secondary px-0">
+                <a href="{{ url('role_detail', role_id=role.id) }}" class="text-white text-decoration-none">
+                  {{ role.name }}
+                </a>
+                {% if role.description %}
+                  <span class="text-muted small d-block">{{ role.description|truncate(60) }}</span>
+                {% endif %}
+              </li>
+            {% else %}
+              <li class="list-group-item bg-transparent text-muted border-0 px-0">Нет ролей</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Столики -->
+      <div class="col-lg-12">
+        <div class="glass-card">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0"><i class="bi bi-table me-2"></i>Назначение столов</h4>
+            <div class="d-flex gap-1">
+              <a href="{{ url('table_create') }}" class="btn btn-sm btn-yummy">+</a>
+              <a href="{{ url('table_list') }}" class="btn btn-sm btn-outline-light">Все</a>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-dark table-sm table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Стол</th>
+                  <th>Сотрудник</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for t in tables_preview %}
+                  <tr>
+                    <td>№ {{ t.table_number }}</td>
+                    <td>{{ employees_dict.get(t.employee_id) or ('Сотрудник #' ~ t.employee_id|string) }}</td>
+                    <td class="text-end">
+                      <a href="{{ url('table_detail', assignment_id=t.id) }}" class="btn btn-sm btn-outline-info"><i class="bi bi-eye"></i></a>
+                    </td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="3" class="text-center text-muted py-3">Назначений нет</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

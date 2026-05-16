@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Редактировать' if menu else 'Создать' }} меню - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="mb-4">
+      <a href="{{ url('menu_list') }}" class="text-white-50"><i class="bi bi-arrow-left me-1"></i> Назад к списку</a>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="glass-card">
+          <h2 class="mb-4">{{ 'Редактировать' if menu else 'Создать новое' }} меню</h2>
+          
+          <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            
+            <div class="mb-4">
+              <label class="form-label">Название меню</label>
+              <input type="text" name="name" class="form-control bg-dark text-white border-secondary" value="{{ menu.name if menu else '' }}" required placeholder="например, Основное меню, Бизнес-ланч...">
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Выберите блюда для включения в меню</label>
+              <div class="glass-card bg-dark bg-opacity-50 p-3" style="max-height: 400px; overflow-y: auto;">
+                {% for dish in all_dishes %}
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" name="dish_ids" value="{{ dish.id }}" id="dish_{{ dish.id }}" {{ 'checked' if dish.id in current_dish_ids else '' }}>
+                    <label class="form-check-label d-flex justify-content-between w-100" for="dish_{{ dish.id }}">
+                      <span>{{ dish.name }}</span>
+                      <span class="text-danger">{{ dish.price|format_price }}</span>
+                    </label>
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <button type="submit" class="btn btn-yummy px-5">{{ 'Сохранить меню' if menu else 'Создать меню' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

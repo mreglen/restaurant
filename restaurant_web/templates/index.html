@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section id="hero" class="hero section light-background">
+  <div class="container">
+    <div class="row gy-4 justify-content-center justify-content-lg-between">
+      <div class="col-lg-5 order-2 order-lg-1 d-flex flex-column justify-content-center">
+        <h1 data-aos="fade-up">Наслаждайтесь<br>Вкусной и Здоровой Едой</h1>
+        <p data-aos="fade-up" data-aos-delay="100">Добро пожаловать в Yummy — место, где каждый найдёт блюдо по душе.</p>
+        <div class="d-flex flex-wrap gap-3" data-aos="fade-up" data-aos-delay="200">
+          <a href="{{ url('public_menu') }}" class="btn-get-started">Посмотреть меню</a>
+          {% if request.session.access_token %}
+            <a href="{{ url('dashboard') }}" class="btn btn-outline-dark">Панель управления</a>
+          {% else %}
+            <a href="{{ url('login') }}" class="btn btn-outline-dark">Вход для сотрудников</a>
+          {% endif %}
+        </div>
+      </div>
+      <div class="col-lg-5 order-1 order-lg-2 d-flex align-items-center justify-content-center" data-aos="zoom-out">
+        <div class="hero-placeholder rounded-4 w-100">
+          <i class="bi bi-shop"></i>
+          <span>Yummy Restaurant</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if dishes %}
+<section id="chefs-menu" class="menu section">
+  <div class="container section-title" data-aos="fade-up">
+    <h2>Популярные блюда</h2>
+    <p><span>Наши</span> <span class="description-title">Хиты</span></p>
+  </div>
+  <div class="container">
+    <div class="row gy-4">
+      {% for dish in dishes %}
+        <div class="col-md-6 col-lg-4" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+          <div class="menu-item h-100 p-3 border rounded">
+            <div class="dish-img-placeholder mb-3"><i class="bi bi-egg-fried"></i></div>
+            <h4>{{ dish.name }}</h4>
+            <p class="ingredients small text-muted">{{ dish.description|truncate(100) if dish.description else '' }}</p>
+            <p class="price mb-0">{{ dish.price|format_price }}</p>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+      <a href="{{ url('public_dishes') }}" class="btn btn-yummy">Все блюда</a>
+      <a href="{{ url('public_menu') }}" class="btn btn-outline-dark ms-2">Меню ресторана</a>
+    </div>
+  </div>
+</section>
+{% elif not api_available %}
+<section class="section">
+  <div class="container text-center py-4">
+    <p class="text-warning">Сейчас меню недоступно — запустите API (<code>uvicorn</code> на порту 8000).</p>
+  </div>
+</section>
+{% endif %}
+
+<section id="about" class="about section">
+  <div class="container section-title" data-aos="fade-up">
+    <h2>О нас</h2>
+    <p><span>Узнайте больше</span> <span class="description-title">о нашем ресторане</span></p>
+  </div>
+  <div class="container">
+    <div class="row gy-4 align-items-center">
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="100">
+        <div class="about-placeholder rounded-4 mb-4">
+          <i class="bi bi-cup-hot"></i>
+        </div>
+        <div class="book-a-table">
+          <h3>Забронировать стол</h3>
+          <p>+7 495 123 45 67</p>
+        </div>
+      </div>
+      <div class="col-lg-6" data-aos="fade-up" data-aos-delay="250">
+        <div class="content">
+          <p class="fst-italic">Мы работаем для вас уже более 10 лет, создавая уникальные рецепты и атмосферу уюта.</p>
+          <ul>
+            <li><i class="bi bi-check-circle-fill"></i> <span>Свежие ингредиенты от местных поставщиков.</span></li>
+            <li><i class="bi bi-check-circle-fill"></i> <span>Профессиональные повара.</span></li>
+            <li><i class="bi bi-check-circle-fill"></i> <span>Индивидуальный подход к каждому гостю.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="stats" class="stats section dark-background">
+  <div class="stats-bg-overlay"></div>
+  <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
+    <div class="row gy-4">
+      <div class="col-lg-3 col-md-6">
+        <div class="stats-item text-center w-100 h-100">
+          <span class="stats-number">{{ dishes_count|default(0) }}</span>
+          <p>Блюд в каталоге</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="stats-item text-center w-100 h-100">
+          <span class="stats-number">{{ menus_count|default(0) }}</span>
+          <p>Меню</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="stats-item text-center w-100 h-100">
+          <span class="stats-number">10+</span>
+          <p>Лет на рынке</p>
+        </div>
+      </div>
+      <div class="col-lg-3 col-md-6">
+        <div class="stats-item text-center w-100 h-100">
+          <span class="stats-number">5</span>
+          <p>Наград</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

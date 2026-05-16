@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ #{{ order.id }} - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="mb-4">
+      <a href="{{ url('order_list') }}" class="text-white-50"><i class="bi bi-arrow-left me-1"></i> Назад к списку</a>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="glass-card mb-4">
+          <div class="d-flex justify-content-between align-items-start mb-4">
+            <div>
+              <h2 class="mb-1">Заказ #{{ order.id }}</h2>
+              <p class="text-white-50">{{ order.order_date|format_date }}</p>
+            </div>
+            <span class="badge bg-success h4 px-3 py-2">{{ order.status }}</span>
+          </div>
+
+          <h4 class="mb-3">Блюда в заказе</h4>
+          <div class="table-responsive">
+            <table class="table table-dark">
+              <thead>
+                <tr>
+                  <th>Блюдо</th>
+                  <th class="text-end">Цена</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for dish in order_dishes %}
+                  <tr>
+                    <td>{{ dish.name }}</td>
+                    <td class="text-end">{{ dish.price|format_price }}</td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <td colspan="2" class="text-center text-white-50">Блюда не указаны</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+              <tfoot>
+                <tr class="border-top border-secondary">
+                  <td class="fw-bold">ИТОГО:</td>
+                  <td class="text-end fw-bold text-danger h4">{{ order.total_price|format_price }}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="glass-card">
+          <h4 class="mb-4">Информация</h4>
+          <p class="mb-1 text-white-50">Клиент</p>
+          <p class="h5 mb-4">{{ order.client_name or 'Гость' }}</p>
+          
+          <p class="mb-1 text-white-50">Столик</p>
+          <p class="h5 mb-4">Номер {{ order.table_number }}</p>
+          
+          <p class="mb-1 text-white-50">Официант (ID)</p>
+          <p class="h5 mb-4">{{ order.employee_id or '---' }}</p>
+
+          {% if perms.can_edit_or_delete_order %}
+            <div class="d-grid gap-2 mt-5">
+              <a href="{{ url('order_update', order_id=order.id) }}" class="btn btn-yummy">Изменить заказ</a>
+              <a href="{{ url('order_delete', order_id=order.id) }}" class="btn btn-outline-danger">Удалить заказ</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

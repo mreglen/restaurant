@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Все блюда - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="menu section">
+  <div class="container section-title" data-aos="fade-up">
+    <h2>Все блюда</h2>
+    <p><span>Наш полный</span> <span class="description-title">Ассортимент</span></p>
+  </div>
+
+  <div class="container">
+    {% if dishes %}
+      <div class="row gy-5">
+        {% for dish in dishes %}
+          <div class="col-lg-4 menu-item" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+            <div class="dish-img-placeholder mb-3"><i class="bi bi-egg-fried"></i></div>
+            <h4>{{ dish.name }}</h4>
+            <p class="ingredients">{{ dish.description or '—' }}</p>
+            <p class="price">{{ dish.price|format_price }}</p>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="text-center py-5">
+        <p class="text-muted">Блюда не найдены.</p>
+        {% if not api_available %}
+          <p class="small text-warning">Запустите API на порту 8000.</p>
+        {% endif %}
+        <a href="{{ url('public_home') }}" class="btn btn-yummy mt-2">На главную</a>
+      </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

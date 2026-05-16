@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Детали назначения стола - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="mb-4">
+      <a href="{{ url('table_list') }}" class="text-white-50"><i class="bi bi-arrow-left me-1"></i> Назад к списку</a>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="glass-card">
+          <div class="text-center mb-4">
+            <div class="d-inline-block p-4 rounded-circle bg-danger bg-opacity-10 mb-3">
+              <i class="bi bi-table display-4 text-danger"></i>
+            </div>
+            <h2 class="mb-1">Столик #{{ table.table_number }}</h2>
+            <p class="text-white-50">Назначение сотрудника</p>
+          </div>
+
+          <div class="row g-4 mb-5">
+            <div class="col-md-12">
+              <p class="mb-1 text-white-50">Закрепленный официант</p>
+              <p class="h5">{{ table.employee_name or 'Не указан' }}</p>
+            </div>
+            <div class="col-md-12">
+              <p class="mb-1 text-white-50">Дата и время назначения</p>
+              <p class="h5">{{ table.assignment_date|format_date }}</p>
+            </div>
+          </div>
+
+          {% if perms.can_manage_tables %}
+            <div class="d-grid gap-2">
+              <a href="{{ url('table_update', assignment_id=table.id) }}" class="btn btn-yummy">Изменить назначение</a>
+              <a href="{{ url('table_delete', assignment_id=table.id) }}" class="btn btn-outline-danger">Открепить официанта</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

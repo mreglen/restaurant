@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Изменить' if table else 'Создать' }} назначение стола - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="mb-4">
+      <a href="{{ url('table_list') }}" class="text-white-50"><i class="bi bi-arrow-left me-1"></i> Назад к списку</a>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="glass-card">
+          <h2 class="mb-4">{{ 'Изменить' if table else 'Создать новое' }} назначение</h2>
+          
+          <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            
+            <div class="mb-4">
+              <label class="form-label">Номер столика</label>
+              <input type="number" name="table_number" class="form-control bg-dark text-white border-secondary" value="{{ table.table_number if table else '' }}" required>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Официант</label>
+              <select name="employee_id" class="form-select bg-dark text-white border-secondary" required>
+                {% for emp in waiters %}
+                  <option value="{{ emp.id }}" {{ 'selected' if table and table.employee_id == emp.id else '' }}>
+                    {{ emp|person_fio }} ({{ emp.username }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="mt-4">
+              <button type="submit" class="btn btn-yummy px-5">{{ 'Сохранить изменения' if table else 'Назначить' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

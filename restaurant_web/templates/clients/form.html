@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Редактировать' if client else 'Добавить' }} клиента - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="mb-4">
+      <a href="{{ url('client_list') }}" class="text-white-50"><i class="bi bi-arrow-left me-1"></i> Назад к списку</a>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="glass-card">
+          <h2 class="mb-4">{{ 'Редактировать' if client else 'Добавить' }} клиента</h2>
+          
+          <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">Фамилия</label>
+                <input type="text" name="last_name" class="form-control bg-dark text-white border-secondary" value="{{ client.last_name if client else '' }}" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Имя</label>
+                <input type="text" name="first_name" class="form-control bg-dark text-white border-secondary" value="{{ client.first_name if client else '' }}" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Отчество</label>
+                <input type="text" name="patronymic" class="form-control bg-dark text-white border-secondary" value="{{ client.patronymic if client else '' }}">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label">Телефон</label>
+                <input type="text" name="phone" class="form-control bg-dark text-white border-secondary" value="{{ client.phone if client else '' }}">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Бонусы</label>
+                <input type="number" name="bonuses" class="form-control bg-dark text-white border-secondary" value="{{ client.bonuses if client else '0' }}">
+              </div>
+
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-yummy px-5">{{ 'Сохранить изменения' if client else 'Добавить клиента' }}</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

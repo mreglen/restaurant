@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}{{ menu.name }} - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+      <a href="{{ url('menu_list') }}" class="text-white-50"><i class="bi bi-arrow-left me-1"></i> Назад к списку</a>
+      <div class="d-flex gap-3">
+        <a href="{{ url('menu_export_docx', menu_id=menu.id) }}" class="btn btn-sm btn-outline-info"><i class="bi bi-file-earmark-word me-1"></i> Word</a>
+        <a href="{{ url('menu_export_xlsx', menu_id=menu.id) }}" class="btn btn-sm btn-outline-success"><i class="bi bi-file-earmark-excel me-1"></i> Excel</a>
+      </div>
+    </div>
+
+    <div class="glass-card">
+      <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+          <h2>{{ menu.name }}</h2>
+          <p class="text-white-50">Состав меню и цены</p>
+        </div>
+        {% if perms.can_manage_menus %}
+          <a href="{{ url('menu_update', menu_id=menu.id) }}" class="btn btn-yummy">Редактировать состав</a>
+        {% endif %}
+      </div>
+
+      <div class="table-responsive mt-4">
+        <table class="table table-dark table-hover">
+          <thead>
+            <tr>
+              <th>Блюдо</th>
+              <th>Описание</th>
+              <th class="text-end">Цена</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for dish in menu_dishes %}
+              <tr>
+                <td class="fw-bold">{{ dish.name }}</td>
+                <td class="small text-white-50">{{ dish.description|truncate(80) }}</td>
+                <td class="text-end text-danger">{{ dish.price|format_price }}</td>
+              </tr>
+            {% else %}
+              <tr>
+                <td colspan="3" class="text-center text-white-50 py-4">В этом меню пока нет блюд</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+          {% if menu_dishes %}
+            <tfoot>
+              <tr>
+                <td colspan="2" class="text-end fw-bold">Итого блюд:</td>
+                <td class="text-end fw-bold">{{ menu_dishes|length }}</td>
+              </tr>
+            </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

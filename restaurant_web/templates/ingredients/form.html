@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Редактировать' if ingredient else 'Добавить' }} ингредиент - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section">
+  <div class="container" data-aos="fade-up">
+    <div class="mb-4">
+      <a href="{{ url('ingredient_list') }}" class="text-white-50"><i class="bi bi-arrow-left me-1"></i> Назад к списку</a>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-6">
+        <div class="glass-card">
+          <h2 class="mb-4">{{ 'Редактировать' if ingredient else 'Добавить' }} ингредиент</h2>
+          
+          <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            
+            <div class="mb-3">
+              <label class="form-label">Название</label>
+              <input type="text" name="name" class="form-control bg-dark text-white border-secondary" value="{{ ingredient.name if ingredient else '' }}" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Тип (категория)</label>
+              <input type="text" name="type" class="form-control bg-dark text-white border-secondary" value="{{ ingredient.type if ingredient else '' }}" placeholder="например, Овощи, Мясо...">
+            </div>
+
+            {% if not ingredient %}
+              <div class="mb-3">
+                <label class="form-label">Прикрепить к блюду (необязательно)</label>
+                <select name="dish_id" class="form-select bg-dark text-white border-secondary">
+                  <option value="">Не прикреплять</option>
+                  {% for dish in dishes %}
+                    <option value="{{ dish.id }}" {{ 'selected' if request.GET.get('dish_id') == dish.id|string else '' }}>{{ dish.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            {% endif %}
+
+            <div class="mt-4">
+              <button type="submit" class="btn btn-yummy px-5">{{ 'Сохранить изменения' if ingredient else 'Добавить ингредиент' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

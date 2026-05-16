@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Регистрация - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section d-flex align-items-center">
+  <div class="container">
+    <div class="row justify-content-center" data-aos="zoom-in">
+      <div class="col-lg-6">
+        <div class="glass-card p-5 shadow-lg">
+          <div class="text-center mb-4">
+            <h2 class="fw-bold">Регистрация</h2>
+            <p class="text-white-50">Присоединяйтесь к нашей команде</p>
+          </div>
+          
+          <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label small">Фамилия</label>
+                <input type="text" name="last_name" class="form-control bg-dark text-white border-secondary" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small">Имя</label>
+                <input type="text" name="first_name" class="form-control bg-dark text-white border-secondary" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label small">Отчество</label>
+                <input type="text" name="patronymic" class="form-control bg-dark text-white border-secondary">
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small">Логин (Username)</label>
+                <input type="text" name="username" class="form-control bg-dark text-white border-secondary" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Телефон</label>
+                <input type="text" name="phone" class="form-control bg-dark text-white border-secondary">
+              </div>
+
+              <div class="col-md-12">
+                <label class="form-label small">Роль</label>
+                <select name="role" class="form-select bg-dark text-white border-secondary" required>
+                  {% for r in roles %}
+                    <option value="{{ r.id }}">{{ r.name }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small">Пароль</label>
+                <input type="password" name="password" class="form-control bg-dark text-white border-secondary" required>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label small">Подтверждение пароля</label>
+                <input type="password" name="password_confirm" class="form-control bg-dark text-white border-secondary" required>
+              </div>
+
+              <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-yummy w-100 py-3 fw-bold">Зарегистрироваться</button>
+              </div>
+            </div>
+          </form>
+
+          <div class="text-center mt-4">
+            <p class="small text-white-50">Уже есть аккаунт? <a href="{{ url('login') }}" class="text-white fw-bold">Войти</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

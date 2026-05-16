@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Вход - Yummy Restaurant{% endblock %}
+
+{% block content %}
+<section class="staff-section d-flex align-items-center">
+  <div class="container">
+    <div class="row justify-content-center" data-aos="zoom-in">
+      <div class="col-lg-5">
+        <div class="glass-card p-5 shadow-lg">
+          <div class="text-center mb-4">
+            <h2 class="fw-bold">Вход в систему</h2>
+            <p class="text-white-50">Используйте ваш логин и пароль</p>
+          </div>
+          
+          <form method="post">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            
+            <div class="mb-3">
+              <label class="form-label">Логин</label>
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-white"><i class="bi bi-person"></i></span>
+                <input type="text" name="username" class="form-control bg-dark text-white border-secondary" required placeholder="Введите логин">
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Пароль</label>
+              <div class="input-group">
+                <span class="input-group-text bg-dark border-secondary text-white"><i class="bi bi-lock"></i></span>
+                <input type="password" name="password" class="form-control bg-dark text-white border-secondary" required placeholder="Введите пароль">
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-yummy w-100 py-3 fw-bold">Войти</button>
+          </form>
+
+          <div class="text-center mt-4">
+            <p class="small text-white-50">Нет аккаунта? <a href="{{ url('register') }}" class="text-white fw-bold">Зарегистрироваться</a></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
