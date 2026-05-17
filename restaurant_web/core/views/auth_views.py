@@ -4,7 +4,7 @@ Views для аутентификации пользователей.
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from core.auth import login_user, register_user, logout_user, is_authenticated
-from core.permissions import REGISTRATION_ROLE_CHOICES
+from core.permissions import REGISTRATION_ROLE_CHOICES, ROLE_WAITER
 
 
 def login_view(request):
@@ -38,7 +38,6 @@ def register_view(request):
         last_name = request.POST.get('last_name', '').strip()
         first_name = request.POST.get('first_name', '').strip()
         patronymic = (request.POST.get('patronymic') or '').strip()
-        role = request.POST.get('role')
         phone = request.POST.get('phone')
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -49,7 +48,7 @@ def register_view(request):
             return render(request, 'auth/register.html', {'roles': REGISTRATION_ROLE_CHOICES})
 
         try:
-            register_user(last_name, first_name, patronymic, int(role), phone, username, password, request)
+            register_user(last_name, first_name, patronymic, ROLE_WAITER, phone, username, password, request)
             messages.success(request, 'Регистрация прошла успешно!')
             return redirect('dashboard')
         except Exception as e:

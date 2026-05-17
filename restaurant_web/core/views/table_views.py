@@ -3,7 +3,8 @@ Views для управления закреплением столиков.
 """
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.api_client import APIClient
+from core.controllers.table_controller import TableController
+from core.controllers.employee_controller import EmployeeController
 from core.permissions import (
     ROLE_ADMIN,
     ROLE_MANAGER,
@@ -22,19 +23,21 @@ def _employee_display_name(e: dict) -> str:
 
 
 def table_list(request):
-    """Список всех закрепленных столиков."""
-    client = APIClient(request)
+    """Список всех закреплённых столиков."""
+    table_ctrl = TableController(request)
+    emp_ctrl = EmployeeController(request)
     rid = role_id_from_session(request.session)
     employees_dict = {}
+
     try:
-        tables = client.get('/tables/')
+        tables = table_ctrl.list()
     except Exception as e:
         messages.error(request, f'Ошибка загрузки: {str(e)}')
         tables = []
 
     if can_view_employees(rid):
         try:
-            employees = client.get('/employees/')
+            employees = emp_ctrl.list()
             employees_dict = {e['id']: _employee_display_name(e) for e in employees}
         except Exception:
             employees_dict = {}
@@ -47,13 +50,15 @@ def table_list(request):
 
 def table_detail(request, assignment_id):
     """Детальная информация о назначении столика."""
-    client = APIClient(request)
+    table_ctrl = TableController(request)
+    emp_ctrl = EmployeeController(request)
     rid = role_id_from_session(request.session)
     employees_dict = {}
+
     try:
-        table = client.get(f'/tables/{assignment_id}/')
+        table = table_ctrl.get(assignment_id)
         if can_view_employees(rid):
-            employees = client.get('/employees/')
+            employees = emp_ctrl.list()
             employees_dict = {e['id']: _employee_display_name(e) for e in employees}
         return render(request, 'tables/detail.html', {
             'table': table,
@@ -67,23 +72,23 @@ def table_detail(request, assignment_id):
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def table_create(request):
     """Закрепление столика за сотрудником."""
-    client = APIClient(request)
+    table_ctrl = TableController(request)
+    emp_ctrl = EmployeeController(request)
 
     if request.method == 'POST':
         data = {
             'table_number': int(request.POST.get('table_number')),
             'employee_id': int(request.POST.get('employee_id')),
         }
-
         try:
-            client.post('/tables/', data)
+            table_ctrl.create(data)
             messages.success(request, 'Столик успешно закреплен!')
             return redirect('table_list')
         except Exception as e:
             messages.error(request, f'Ошибка закрепления: {str(e)}')
 
     try:
-        employees = client.get('/employees/')
+        employees = emp_ctrl.list()
     except Exception:
         employees = []
 
@@ -93,24 +98,24 @@ def table_create(request):
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def table_update(request, assignment_id):
     """Обновление назначения столика."""
-    client = APIClient(request)
+    table_ctrl = TableController(request)
+    emp_ctrl = EmployeeController(request)
 
     if request.method == 'POST':
         data = {
             'table_number': int(request.POST.get('table_number')),
             'employee_id': int(request.POST.get('employee_id')),
         }
-
         try:
-            client.put(f'/tables/{assignment_id}/', data)
+            table_ctrl.update(assignment_id, data)
             messages.success(request, 'Назначение столика обновлено!')
             return redirect('table_list')
         except Exception as e:
             messages.error(request, f'Ошибка обновления: {str(e)}')
 
     try:
-        table = client.get(f'/tables/{assignment_id}/')
-        employees = client.get('/employees/')
+        table = table_ctrl.get(assignment_id)
+        employees = emp_ctrl.list()
         return render(request, 'tables/update.html', {
             'table': table,
             'employees': employees,
@@ -124,8 +129,7 @@ def table_update(request, assignment_id):
 def table_delete(request, assignment_id):
     """Удаление назначения столика."""
     try:
-        client = APIClient(request)
-        client.delete(f'/tables/{assignment_id}/')
+        TableController(request).delete(assignment_id)
         messages.success(request, 'Назначение столика удалено!')
     except Exception as e:
         messages.error(request, f'Ошибка удаления: {str(e)}')

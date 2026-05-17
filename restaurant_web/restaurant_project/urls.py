@@ -11,7 +11,7 @@ from core.views import (
     employee_list, employee_detail, employee_create, employee_update, employee_delete,
     role_list, role_create, role_detail, role_update, role_delete,
     dish_list, dish_detail, dish_create, dish_update, dish_delete,
-    ingredient_list, ingredient_create, ingredient_update, ingredient_delete,
+    ingredient_list, ingredient_detail, ingredient_create, ingredient_update, ingredient_delete,
     menu_list, menu_detail, menu_create, menu_update, menu_delete,
     menu_export_docx, menu_export_xlsx,
     order_list, order_detail, order_create, order_update, order_delete, order_statistics,
@@ -74,6 +74,7 @@ urlpatterns = [
     # Ingredients
     path('ingredients/', ingredient_list, name='ingredient_list'),
     path('ingredients/create/', ingredient_create, name='ingredient_create'),
+    path('ingredients/<int:ingredient_id>/', ingredient_detail, name='ingredient_detail'),
     path('ingredients/<int:ingredient_id>/update/', ingredient_update, name='ingredient_update'),
     path('ingredients/<int:ingredient_id>/delete/', ingredient_delete, name='ingredient_delete'),
     

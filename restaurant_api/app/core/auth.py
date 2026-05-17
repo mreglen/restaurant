@@ -28,13 +28,15 @@ class AuthService:
                 detail="Имя пользователя уже занято"
             )
 
+        # Публичная регистрация — только роль официанта (id=3).
+        waiter_role_id = 3
         user = Employee(
             last_name=data.last_name,
             first_name=data.first_name,
             patronymic=data.patronymic or "",
             username=data.username,
             password_hash=hash_password(data.password),
-            role_id=data.role,
+            role_id=waiter_role_id,
             phone=data.phone
         )
 

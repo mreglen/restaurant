@@ -41,7 +41,13 @@ def can_view_employees(role_id: int | None) -> bool:
 
 
 def can_manage_employees(role_id: int | None) -> bool:
+    """Создание и удаление сотрудников — только администратор."""
     return role_id == ROLE_ADMIN
+
+
+def can_edit_employees(role_id: int | None) -> bool:
+    """Редактирование карточек сотрудников — менеджер и администратор."""
+    return manager_or_admin(role_id)
 
 
 def can_manage_roles(role_id: int | None) -> bool:
@@ -65,7 +71,8 @@ def can_manage_menus(role_id: int | None) -> bool:
 
 
 def can_export_menu_files(role_id: int | None) -> bool:
-    return manager_or_admin(role_id)
+    """Печать меню (Word/Excel) — все авторизованные роли, включая официанта."""
+    return role_id in (ROLE_ADMIN, ROLE_MANAGER, ROLE_WAITER)
 
 
 def can_create_order(role_id: int | None) -> bool:
@@ -96,8 +103,6 @@ def can_purge_all_clients(role_id: int | None) -> bool:
 
 # Синхронизировать с таблицей roles в БД API (гостевой GET /roles/ недоступен).
 REGISTRATION_ROLE_CHOICES = [
-    {'id': ROLE_ADMIN, 'name': 'Администратор'},
-    {'id': ROLE_MANAGER, 'name': 'Менеджер'},
     {'id': ROLE_WAITER, 'name': 'Официант'},
 ]
 
@@ -110,6 +115,7 @@ def permissions_dict(role_id: int | None) -> dict[str, Any]:
         'is_waiter': is_waiter(role_id),
         'can_view_employees': can_view_employees(role_id),
         'can_manage_employees': can_manage_employees(role_id),
+        'can_edit_employees': can_edit_employees(role_id),
         'can_manage_roles': can_manage_roles(role_id),
         'can_manage_clients': can_manage_clients(role_id),
         'can_manage_dishes': can_manage_dishes(role_id),

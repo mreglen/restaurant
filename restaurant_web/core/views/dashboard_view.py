@@ -4,7 +4,7 @@ Dashboard view — панель управления для авторизова
 from django.contrib import messages
 from django.shortcuts import render
 
-from core.api_client import APIClient
+from core.controllers.base import APIClient
 from core.api_helpers import fetch_list
 from core.permissions import ROLE_ADMIN, can_view_employees, role_id_from_session
 

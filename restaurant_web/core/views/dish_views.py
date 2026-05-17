@@ -3,16 +3,19 @@ Views для управления блюдами.
 """
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.api_client import APIClient
+from core.controllers.dish_controller import DishController
+from core.controllers.ingredient_controller import IngredientController
 from core.permissions import ROLE_ADMIN, ROLE_MANAGER, require_session_roles
 
 
 def dish_list(request):
-    """Список всех блюд."""
-    client = APIClient(request)
+    """Список блюд с поиском по названию."""
+    dish_ctrl = DishController(request)
+    ing_ctrl = IngredientController(request)
+    q = (request.GET.get('q') or '').strip()
     try:
-        dishes = client.get('/dishes/')
-        ingredients = client.get('/ingredients/')
+        dishes = dish_ctrl.search(q) if q else dish_ctrl.list()
+        ingredients = ing_ctrl.list()
         ingredients_dict = {i['id']: i['name'] for i in ingredients}
     except Exception as e:
         messages.error(request, f'Ошибка загрузки: {str(e)}')
@@ -22,15 +25,17 @@ def dish_list(request):
     return render(request, 'dishes/list.html', {
         'dishes': dishes,
         'ingredients_dict': ingredients_dict,
+        'search_q': q,
     })
 
 
 def dish_detail(request, dish_id):
     """Детальная информация о блюде и названия ингредиентов."""
-    client = APIClient(request)
+    dish_ctrl = DishController(request)
+    ing_ctrl = IngredientController(request)
     try:
-        dish = client.get(f'/dishes/{dish_id}/')
-        ingredients = client.get('/ingredients/')
+        dish = dish_ctrl.get(dish_id)
+        ingredients = ing_ctrl.list()
         ing_by_id = {i['id']: i['name'] for i in ingredients}
         raw_ids = dish.get('ingredients') or []
         ingredient_rows = [
@@ -49,7 +54,8 @@ def dish_detail(request, dish_id):
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def dish_create(request):
     """Создание нового блюда."""
-    client = APIClient(request)
+    dish_ctrl = DishController(request)
+    ing_ctrl = IngredientController(request)
 
     if request.method == 'POST':
         ingredient_ids = request.POST.getlist('ingredient_ids')
@@ -59,16 +65,15 @@ def dish_create(request):
             'price': float(request.POST.get('price')),
             'ingredient_ids': [int(i) for i in ingredient_ids],
         }
-
         try:
-            client.post('/dishes/', data)
+            dish_ctrl.create(data)
             messages.success(request, 'Блюдо успешно создано!')
             return redirect('dish_list')
         except Exception as e:
             messages.error(request, f'Ошибка создания: {str(e)}')
 
     try:
-        ingredients = client.get('/ingredients/')
+        ingredients = ing_ctrl.list()
     except Exception:
         ingredients = []
 
@@ -78,7 +83,8 @@ def dish_create(request):
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def dish_update(request, dish_id):
     """Обновление данных блюда."""
-    client = APIClient(request)
+    dish_ctrl = DishController(request)
+    ing_ctrl = IngredientController(request)
 
     if request.method == 'POST':
         ingredient_ids = request.POST.getlist('ingredient_ids')
@@ -88,17 +94,16 @@ def dish_update(request, dish_id):
             'price': float(request.POST.get('price')),
             'ingredient_ids': [int(i) for i in ingredient_ids],
         }
-
         try:
-            client.put(f'/dishes/{dish_id}/', data)
+            dish_ctrl.update(dish_id, data)
             messages.success(request, 'Блюдо обновлено!')
             return redirect('dish_list')
         except Exception as e:
             messages.error(request, f'Ошибка обновления: {str(e)}')
 
     try:
-        dish = client.get(f'/dishes/{dish_id}/')
-        ingredients = client.get('/ingredients/')
+        dish = dish_ctrl.get(dish_id)
+        ingredients = ing_ctrl.list()
         return render(request, 'dishes/update.html', {
             'dish': dish,
             'ingredients': ingredients,
@@ -112,8 +117,7 @@ def dish_update(request, dish_id):
 def dish_delete(request, dish_id):
     """Удаление блюда."""
     try:
-        client = APIClient(request)
-        client.delete(f'/dishes/{dish_id}/')
+        DishController(request).delete(dish_id)
         messages.success(request, 'Блюдо удалено!')
     except Exception as e:
         messages.error(request, f'Ошибка удаления: {str(e)}')

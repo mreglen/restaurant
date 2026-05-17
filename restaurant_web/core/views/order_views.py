@@ -5,15 +5,16 @@ from collections import defaultdict
 
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.api_client import APIClient
+from core.controllers.order_controller import OrderController
+from core.controllers.dish_controller import DishController
+from core.controllers.client_controller import ClientController
 from core.permissions import ROLE_ADMIN, ROLE_MANAGER, require_session_roles
 
 
 def order_list(request):
     """Список всех заказов."""
-    client = APIClient(request)
     try:
-        orders = client.get('/orders/')
+        orders = OrderController(request).list()
     except Exception as e:
         messages.error(request, f'Ошибка загрузки: {str(e)}')
         orders = []
@@ -23,12 +24,13 @@ def order_list(request):
 
 def order_detail(request, order_id):
     """Детальная информация о заказе."""
-    client = APIClient(request)
+    order_ctrl = OrderController(request)
+    dish_ctrl = DishController(request)
     try:
-        order = client.get(f'/orders/{order_id}/')
+        order = order_ctrl.get(order_id)
         dish_names = {}
         try:
-            dishes = client.get('/dishes/')
+            dishes = dish_ctrl.list()
             dish_names = {d['id']: d.get('name', '') for d in dishes}
         except Exception:
             pass
@@ -43,7 +45,9 @@ def order_detail(request, order_id):
 
 def order_create(request):
     """Создание нового заказа."""
-    client = APIClient(request)
+    order_ctrl = OrderController(request)
+    dish_ctrl = DishController(request)
+    client_ctrl = ClientController(request)
 
     if request.method == 'POST':
         items = []
@@ -63,17 +67,16 @@ def order_create(request):
             'client_id': int(request.POST.get('client_id')) if request.POST.get('client_id') else None,
             'items': items,
         }
-
         try:
-            client.post('/orders/', data)
+            order_ctrl.create(data)
             messages.success(request, 'Заказ успешно создан!')
             return redirect('order_list')
         except Exception as e:
             messages.error(request, f'Ошибка создания: {str(e)}')
 
     try:
-        dishes = client.get('/dishes/')
-        clients = client.get('/clients/')
+        dishes = dish_ctrl.list()
+        clients = client_ctrl.list()
     except Exception:
         dishes = []
         clients = []
@@ -87,24 +90,24 @@ def order_create(request):
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def order_update(request, order_id):
     """Обновление заказа."""
-    client = APIClient(request)
+    order_ctrl = OrderController(request)
+    client_ctrl = ClientController(request)
 
     if request.method == 'POST':
         data = {
             'table_number': int(request.POST.get('table_number')),
             'client_id': int(request.POST.get('client_id')) if request.POST.get('client_id') else None,
         }
-
         try:
-            client.put(f'/orders/{order_id}/', data)
+            order_ctrl.update(order_id, data)
             messages.success(request, 'Заказ обновлен!')
             return redirect('order_list')
         except Exception as e:
             messages.error(request, f'Ошибка обновления: {str(e)}')
 
     try:
-        order = client.get(f'/orders/{order_id}/')
-        clients = client.get('/clients/')
+        order = order_ctrl.get(order_id)
+        clients = client_ctrl.list()
         return render(request, 'orders/update.html', {
             'order': order,
             'clients': clients,
@@ -118,8 +121,7 @@ def order_update(request, order_id):
 def order_delete(request, order_id):
     """Удаление заказа."""
     try:
-        client = APIClient(request)
-        client.delete(f'/orders/{order_id}/')
+        OrderController(request).delete(order_id)
         messages.success(request, 'Заказ удален!')
     except Exception as e:
         messages.error(request, f'Ошибка удаления: {str(e)}')
@@ -129,16 +131,18 @@ def order_delete(request, order_id):
 
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def order_statistics(request):
-    """Агрегированная статистика по блюдам из списка заказов (без отдельного API)."""
-    client = APIClient(request)
+    """Агрегированная статистика по блюдам из списка заказов."""
+    order_ctrl = OrderController(request)
+    dish_ctrl = DishController(request)
+
     try:
-        orders = client.get('/orders/')
+        orders = order_ctrl.list()
     except Exception as e:
         messages.error(request, f'Ошибка загрузки заказов: {str(e)}')
         orders = []
 
-    dish_qty = defaultdict(int)
-    dish_revenue = defaultdict(float)
+    dish_qty: dict[int, int] = defaultdict(int)
+    dish_revenue: dict[int, float] = defaultdict(float)
     for order in orders or []:
         for item in order.get('items') or []:
             did = item.get('dish_id')
@@ -149,27 +153,35 @@ def order_statistics(request):
             dish_qty[did] += q
             dish_revenue[did] += price * q
 
-    dish_names = {}
+    dish_names: dict[int, str] = {}
     try:
-        dishes = client.get('/dishes/')
+        dishes = dish_ctrl.list()
         dish_names = {d['id']: d.get('name', '') for d in dishes}
     except Exception:
         pass
 
-    rows = []
-    for did in sorted(dish_qty.keys(), key=lambda x: dish_revenue[x], reverse=True):
-        rows.append({
+    rows = [
+        {
             'dish_id': did,
             'name': dish_names.get(did, f'Блюдо #{did}'),
             'quantity': dish_qty[did],
             'revenue': dish_revenue[did],
-        })
+        }
+        for did in sorted(dish_qty, key=lambda x: dish_revenue[x], reverse=True)
+    ]
 
-    total_orders = len(orders) if isinstance(orders, list) else 0
+    total_orders = len(orders)
     total_revenue = sum(dish_revenue.values())
+    average_check = total_revenue / total_orders if total_orders else 0
 
     return render(request, 'orders/statistics.html', {
-        'rows': rows,
-        'total_orders': total_orders,
-        'total_revenue': total_revenue,
+        'stats': {
+            'total_orders': total_orders,
+            'total_revenue': total_revenue,
+            'average_check': average_check,
+            'popular_dishes': [
+                {'name': r['name'], 'count': r['quantity'], 'revenue': r['revenue']}
+                for r in rows
+            ],
+        },
     })

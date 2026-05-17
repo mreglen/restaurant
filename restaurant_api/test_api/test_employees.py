@@ -126,6 +126,19 @@ class TestEmployeeAccess:
         resp = manager_client.get("/api/v1/employees/")
         assert resp.status_code == 200
 
+    def test_manager_can_update_employee(self, manager_client: TestClient, seed_employee):
+        """Менеджер может редактировать карточку сотрудника."""
+        emp = seed_employee(username="emp_upd", role_name="waiter_role")
+        resp = manager_client.put(f"/api/v1/employees/{emp.id}", json={
+            "last_name": "Обновлён",
+            "first_name": emp.first_name,
+            "patronymic": emp.patronymic or "",
+            "role_id": emp.role_id,
+            "phone": emp.phone,
+        })
+        assert resp.status_code == 200
+        assert resp.json()["last_name"] == "Обновлён"
+
     def test_manager_cannot_create_employee(self, manager_client: TestClient, seed_role):
         """Менеджер не может создавать сотрудников → 403."""
         role = seed_role("some_role")

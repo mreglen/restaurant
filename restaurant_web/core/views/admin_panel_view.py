@@ -4,7 +4,7 @@
 from django.contrib import messages
 from django.shortcuts import render
 
-from core.api_client import APIClient
+from core.controllers.base import APIClient
 from core.permissions import ROLE_ADMIN, require_session_roles
 
 _PREVIEW = 8

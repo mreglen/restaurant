@@ -3,7 +3,7 @@ Views для управления клиентами.
 """
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.api_client import APIClient
+from core.controllers.client_controller import ClientController
 from core.permissions import (
     ROLE_ADMIN,
     ROLE_MANAGER,
@@ -13,13 +13,10 @@ from core.permissions import (
 
 def client_list(request):
     """Список клиентов или поиск по ФИО (GET /clients/search/)."""
-    client = APIClient(request)
+    controller = ClientController(request)
     q = (request.GET.get('q') or request.GET.get('search') or '').strip()
     try:
-        if q:
-            clients = client.get('/clients/search/', params={'q': q})
-        else:
-            clients = client.get('/clients/')
+        clients = controller.search(q) if q else controller.list()
     except Exception as e:
         messages.error(request, f'Ошибка загрузки клиентов: {str(e)}')
         clients = []
@@ -32,9 +29,9 @@ def client_list(request):
 
 def client_detail(request, client_id):
     """Детальная информация о клиенте."""
-    client = APIClient(request)
+    controller = ClientController(request)
     try:
-        client_data = client.get(f'/clients/{client_id}/')
+        client_data = controller.get(client_id)
         return render(request, 'clients/detail.html', {'client': client_data})
     except Exception as e:
         messages.error(request, f'Ошибка: {str(e)}')
@@ -53,22 +50,20 @@ def client_create(request):
             'is_vip': request.POST.get('is_vip') == 'on',
             'bonus_points': int(request.POST.get('bonus_points', 0)),
         }
-
         try:
-            client = APIClient(request)
-            client.post('/clients/', data)
+            ClientController(request).create(data)
             messages.success(request, 'Клиент успешно создан!')
             return redirect('client_list')
         except Exception as e:
             messages.error(request, f'Ошибка создания клиента: {str(e)}')
 
-    return render(request, 'clients/create.html')
+    return render(request, 'clients/form.html')
 
 
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def client_update(request, client_id):
     """Обновление данных клиента."""
-    client = APIClient(request)
+    controller = ClientController(request)
 
     if request.method == 'POST':
         data = {
@@ -79,17 +74,16 @@ def client_update(request, client_id):
             'is_vip': request.POST.get('is_vip') == 'on',
             'bonus_points': int(request.POST.get('bonus_points', 0)),
         }
-
         try:
-            client.put(f'/clients/{client_id}/', data)
+            controller.update(client_id, data)
             messages.success(request, 'Данные клиента обновлены!')
             return redirect('client_list')
         except Exception as e:
             messages.error(request, f'Ошибка обновления: {str(e)}')
 
     try:
-        client_data = client.get(f'/clients/{client_id}/')
-        return render(request, 'clients/update.html', {'client': client_data})
+        client_data = controller.get(client_id)
+        return render(request, 'clients/form.html', {'client': client_data})
     except Exception as e:
         messages.error(request, f'Ошибка: {str(e)}')
         return redirect('client_list')
@@ -99,8 +93,7 @@ def client_update(request, client_id):
 def client_delete(request, client_id):
     """Удаление клиента."""
     try:
-        client = APIClient(request)
-        client.delete(f'/clients/{client_id}/')
+        ClientController(request).delete(client_id)
         messages.success(request, 'Клиент удален!')
     except Exception as e:
         messages.error(request, f'Ошибка удаления: {str(e)}')
@@ -112,9 +105,9 @@ def client_delete(request, client_id):
 def client_purge(request):
     """
     Массовое удаление всех клиентов (только администратор).
-    GET — форма подтверждения; POST — удаление по одному через API.
+    GET — форма подтверждения; POST — удаление через контроллер.
     """
-    client = APIClient(request)
+    controller = ClientController(request)
 
     if request.method == 'POST':
         if request.POST.get('confirm_text', '').strip() != 'УДАЛИТЬ ВСЕХ':
@@ -122,29 +115,16 @@ def client_purge(request):
             return redirect('client_purge')
 
         try:
-            clients = client.get('/clients/')
+            deleted, errors = controller.purge()
+            messages.success(request, f'Удалено записей: {deleted}. Ошибок: {errors}.')
         except Exception as e:
-            messages.error(request, f'Не удалось получить список клиентов: {str(e)}')
-            return redirect('client_purge')
+            messages.error(request, f'Не удалось выполнить массовое удаление: {str(e)}')
 
-        deleted = 0
-        errors = 0
-        for c in clients:
-            cid = c.get('id')
-            if cid is None:
-                continue
-            try:
-                client.delete(f'/clients/{cid}/')
-                deleted += 1
-            except Exception:
-                errors += 1
-
-        messages.success(request, f'Удалено записей: {deleted}. Ошибок: {errors}.')
         return redirect('client_list')
 
     try:
-        clients = client.get('/clients/')
-        count = len(clients) if isinstance(clients, list) else 0
+        clients = controller.list()
+        count = len(clients)
     except Exception as e:
         messages.error(request, f'Ошибка загрузки: {str(e)}')
         count = 0

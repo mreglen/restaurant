@@ -3,9 +3,11 @@ Views для управления сотрудниками.
 """
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from core.api_client import APIClient
+from core.controllers.employee_controller import EmployeeController
+from core.controllers.role_controller import RoleController
 from core.permissions import (
     ROLE_ADMIN,
+    ROLE_MANAGER,
     can_view_employees,
     require_session_roles,
     role_id_from_session,
@@ -20,15 +22,12 @@ def employee_list(request):
         messages.warning(request, 'Недостаточно прав.')
         return redirect('dashboard')
 
-    client = APIClient(request)
+    emp_ctrl = EmployeeController(request)
     q = (request.GET.get('q') or '').strip()
     try:
-        if q:
-            employees = client.get('/employees/search/', params={'q': q})
-        else:
-            employees = client.get('/employees/')
+        employees = emp_ctrl.search(q) if q else emp_ctrl.list()
         if rid == ROLE_ADMIN:
-            roles = client.get('/roles/')
+            roles = RoleController(request).list()
             roles_dict = {r['id']: r['name'] for r in roles}
         else:
             roles_dict = {r['id']: r['name'] for r in REGISTRATION_ROLE_CHOICES}
@@ -51,9 +50,8 @@ def employee_detail(request, employee_id):
         messages.warning(request, 'Недостаточно прав.')
         return redirect('dashboard')
 
-    client = APIClient(request)
     try:
-        employee = client.get(f'/employees/{employee_id}/')
+        employee = EmployeeController(request).get(employee_id)
         return render(request, 'employees/detail.html', {'employee': employee})
     except Exception as e:
         messages.error(request, f'Ошибка: {str(e)}')
@@ -63,7 +61,7 @@ def employee_detail(request, employee_id):
 @require_session_roles(ROLE_ADMIN)
 def employee_create(request):
     """Создание нового сотрудника."""
-    client = APIClient(request)
+    emp_ctrl = EmployeeController(request)
 
     if request.method == 'POST':
         data = {
@@ -75,26 +73,26 @@ def employee_create(request):
             'username': request.POST.get('username'),
             'password': request.POST.get('password'),
         }
-
         try:
-            client.post('/employees/', data)
+            emp_ctrl.create(data)
             messages.success(request, 'Сотрудник успешно создан!')
             return redirect('employee_list')
         except Exception as e:
             messages.error(request, f'Ошибка создания: {str(e)}')
 
     try:
-        roles = client.get('/roles/')
+        roles = RoleController(request).list()
     except Exception:
         roles = []
 
-    return render(request, 'employees/create.html', {'roles': roles})
+    return render(request, 'employees/form.html', {'roles': roles})
 
 
-@require_session_roles(ROLE_ADMIN)
+@require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def employee_update(request, employee_id):
     """Обновление данных сотрудника."""
-    client = APIClient(request)
+    emp_ctrl = EmployeeController(request)
+    rid = role_id_from_session(request.session)
 
     if request.method == 'POST':
         data = {
@@ -104,18 +102,17 @@ def employee_update(request, employee_id):
             'role_id': int(request.POST.get('role_id')),
             'phone': request.POST.get('phone'),
         }
-
         try:
-            client.put(f'/employees/{employee_id}/', data)
+            emp_ctrl.update(employee_id, data)
             messages.success(request, 'Данные сотрудника обновлены!')
             return redirect('employee_list')
         except Exception as e:
             messages.error(request, f'Ошибка обновления: {str(e)}')
 
     try:
-        employee = client.get(f'/employees/{employee_id}/')
-        roles = client.get('/roles/')
-        return render(request, 'employees/update.html', {
+        employee = emp_ctrl.get(employee_id)
+        roles = RoleController(request).list() if rid == ROLE_ADMIN else list(REGISTRATION_ROLE_CHOICES)
+        return render(request, 'employees/form.html', {
             'employee': employee,
             'roles': roles,
         })
@@ -128,8 +125,7 @@ def employee_update(request, employee_id):
 def employee_delete(request, employee_id):
     """Удаление сотрудника."""
     try:
-        client = APIClient(request)
-        client.delete(f'/employees/{employee_id}/')
+        EmployeeController(request).delete(employee_id)
         messages.success(request, 'Сотрудник удален!')
     except Exception as e:
         messages.error(request, f'Ошибка удаления: {str(e)}')

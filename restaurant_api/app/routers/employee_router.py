@@ -61,11 +61,11 @@ def get_employee_endpoint(employee_id: int, db: Session = Depends(get_db)):
 @router.put(
     "/{employee_id}",
     response_model=EmployeeRead,
-    dependencies=[Depends(require_roles(ADMIN_ONLY))]
+    dependencies=[Depends(require_roles(MANAGER_AND_ADMIN))]
 )
 def update_employee_endpoint(employee_id: int, data: EmployeeUpdate, db: Session = Depends(get_db)):
     """
-    Обновляет данные сотрудника (кроме логина и пароля). Доступно только пользователям с ролью 'admin'.
+    Обновляет данные сотрудника (кроме логина и пароля). Доступно менеджеру и администратору.
     """
     return update_employee(employee_id, data, db)
 

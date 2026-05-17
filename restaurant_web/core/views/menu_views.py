@@ -4,30 +4,32 @@ Views для управления меню ресторана.
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.http import HttpResponse
-from core.api_client import APIClient
+from core.controllers.menu_controller import MenuController
+from core.controllers.dish_controller import DishController
 from core.api_helpers import menu_dishes_for
-from core.permissions import ROLE_ADMIN, ROLE_MANAGER, require_session_roles
-import requests
+from core.permissions import ROLE_ADMIN, ROLE_MANAGER, ROLE_WAITER, require_session_roles
 
 
 def menu_list(request):
-    """Список всех меню."""
-    client = APIClient(request)
+    """Список меню с поиском по названию."""
+    controller = MenuController(request)
+    q = (request.GET.get('q') or '').strip()
     try:
-        menus = client.get('/menus/')
+        menus = controller.search(q) if q else controller.list()
     except Exception as e:
         messages.error(request, f'Ошибка загрузки: {str(e)}')
         menus = []
-    
-    return render(request, 'menus/list.html', {'menus': menus})
+
+    return render(request, 'menus/list.html', {'menus': menus, 'search_q': q})
 
 
 def menu_detail(request, menu_id):
     """Детальная информация о меню."""
-    client = APIClient(request)
+    menu_ctrl = MenuController(request)
+    dish_ctrl = DishController(request)
     try:
-        menu = client.get(f'/menus/{menu_id}/')
-        dishes = client.get('/dishes/')
+        menu = menu_ctrl.get(menu_id)
+        dishes = dish_ctrl.list()
         dishes_dict = {d['id']: d for d in dishes if isinstance(d, dict) and 'id' in d}
         return render(request, 'menus/detail.html', {
             'menu': menu,
@@ -42,55 +44,55 @@ def menu_detail(request, menu_id):
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def menu_create(request):
     """Создание нового меню."""
-    client = APIClient(request)
-    
+    menu_ctrl = MenuController(request)
+    dish_ctrl = DishController(request)
+
     if request.method == 'POST':
         dish_ids = request.POST.getlist('dish_ids')
         data = {
             'name': request.POST.get('name'),
-            'dish_ids': [int(i) for i in dish_ids]
+            'dish_ids': [int(i) for i in dish_ids],
         }
-        
         try:
-            client.post('/menus/', data)
+            menu_ctrl.create(data)
             messages.success(request, 'Меню успешно создано!')
             return redirect('menu_list')
         except Exception as e:
             messages.error(request, f'Ошибка создания: {str(e)}')
-    
+
     try:
-        dishes = client.get('/dishes/')
-    except:
+        dishes = dish_ctrl.list()
+    except Exception:
         dishes = []
-    
+
     return render(request, 'menus/create.html', {'dishes': dishes})
 
 
 @require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
 def menu_update(request, menu_id):
     """Обновление меню."""
-    client = APIClient(request)
-    
+    menu_ctrl = MenuController(request)
+    dish_ctrl = DishController(request)
+
     if request.method == 'POST':
         dish_ids = request.POST.getlist('dish_ids')
         data = {
             'name': request.POST.get('name'),
-            'dish_ids': [int(i) for i in dish_ids]
+            'dish_ids': [int(i) for i in dish_ids],
         }
-        
         try:
-            client.put(f'/menus/{menu_id}/', data)
+            menu_ctrl.update(menu_id, data)
             messages.success(request, 'Меню обновлено!')
             return redirect('menu_list')
         except Exception as e:
             messages.error(request, f'Ошибка обновления: {str(e)}')
-    
+
     try:
-        menu = client.get(f'/menus/{menu_id}/')
-        dishes = client.get('/dishes/')
+        menu = menu_ctrl.get(menu_id)
+        dishes = dish_ctrl.list()
         return render(request, 'menus/update.html', {
             'menu': menu,
-            'dishes': dishes
+            'dishes': dishes,
         })
     except Exception as e:
         messages.error(request, f'Ошибка: {str(e)}')
@@ -101,27 +103,23 @@ def menu_update(request, menu_id):
 def menu_delete(request, menu_id):
     """Удаление меню."""
     try:
-        client = APIClient(request)
-        client.delete(f'/menus/{menu_id}/')
+        MenuController(request).delete(menu_id)
         messages.success(request, 'Меню удалено!')
     except Exception as e:
         messages.error(request, f'Ошибка удаления: {str(e)}')
-    
+
     return redirect('menu_list')
 
 
-@require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
+@require_session_roles(ROLE_ADMIN, ROLE_MANAGER, ROLE_WAITER)
 def menu_export_docx(request, menu_id):
     """Экспорт меню в DOCX."""
-    from django.conf import settings
     try:
-        token = request.session.get('access_token', '')
-        url = f"{settings.API_BASE_URL}/menus/{menu_id}/export/docx"
-        resp = requests.get(url, headers={'Authorization': f'Bearer {token}'}, timeout=30)
+        resp = MenuController(request).export_docx(menu_id)
         resp.raise_for_status()
         response = HttpResponse(
             resp.content,
-            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            content_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         )
         response['Content-Disposition'] = f'attachment; filename=menu_{menu_id}.docx'
         return response
@@ -130,18 +128,15 @@ def menu_export_docx(request, menu_id):
         return redirect('menu_detail', menu_id=menu_id)
 
 
-@require_session_roles(ROLE_ADMIN, ROLE_MANAGER)
+@require_session_roles(ROLE_ADMIN, ROLE_MANAGER, ROLE_WAITER)
 def menu_export_xlsx(request, menu_id):
     """Экспорт меню в XLSX."""
-    from django.conf import settings
     try:
-        token = request.session.get('access_token', '')
-        url = f"{settings.API_BASE_URL}/menus/{menu_id}/export/xlsx"
-        resp = requests.get(url, headers={'Authorization': f'Bearer {token}'}, timeout=30)
+        resp = MenuController(request).export_xlsx(menu_id)
         resp.raise_for_status()
         response = HttpResponse(
             resp.content,
-            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         )
         response['Content-Disposition'] = f'attachment; filename=menu_{menu_id}.xlsx'
         return response

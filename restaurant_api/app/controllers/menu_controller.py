@@ -12,7 +12,7 @@ from app.models.dish_ingredient import DishIngredient
 from app.utils.printing import menu_to_docx_bytes, menu_to_xlsx_bytes
 
 
-ALLOWED_EXPORT_ROLE_IDS = {1, 2}
+ALLOWED_EXPORT_ROLE_IDS = {1, 2, 3}
 
 
 def create_menu(data: MenuCreate, db: Session) -> MenuRead:

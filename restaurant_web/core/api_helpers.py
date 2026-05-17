@@ -3,7 +3,7 @@
 """
 from __future__ import annotations
 
-from core.api_client import APIClient
+from core.controllers.base import APIClient
 
 
 def anonymous_api_client() -> APIClient:
