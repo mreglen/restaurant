@@ -1,0 +1,126 @@
+/* Дополнения к теме Lounge для админ-страниц Django */
+.app-page-wrap {
+  padding-top: 12rem;
+  padding-bottom: 6rem;
+}
+.app-staff-header {
+  position: relative;
+  background: var(--color-body, #fff);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 1.5rem 0;
+  margin-bottom: 2rem;
+}
+.app-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+.app-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.5rem;
+}
+.app-table th,
+.app-table td {
+  padding: 1rem 1.2rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  vertical-align: top;
+}
+.app-table th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.app-form label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 500;
+}
+.app-form input[type="text"],
+.app-form input[type="email"],
+.app-form input[type="password"],
+.app-form input[type="number"],
+.app-form input[type="tel"],
+.app-form select,
+.app-form textarea {
+  width: 100%;
+  max-width: 48rem;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+  font-size: 1.5rem;
+}
+.app-form textarea {
+  min-height: 8rem;
+}
+.app-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  align-items: center;
+}
+.app-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
+}
+.app-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 2rem;
+  border-radius: 4px;
+}
+.app-messages .alert {
+  padding: 1rem 1.5rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  font-size: 1.5rem;
+}
+.app-messages .alert-danger,
+.app-messages .alert-debug {
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+}
+.app-messages .alert-success {
+  background: #d1e7dd;
+  border: 1px solid #badbcc;
+}
+.app-messages .alert-warning {
+  background: #fff3cd;
+  border: 1px solid #ffecb5;
+}
+.app-messages .alert-info {
+  background: #cff4fc;
+  border: 1px solid #b6effb;
+}
+.app-nav-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 1.6rem;
+  align-items: center;
+  font-size: 1.4rem;
+}
+.app-nav-row a {
+  text-decoration: none;
+}
+.app-nav-row a:hover {
+  text-decoration: underline;
+}
+.app-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 0.6rem 1.2rem;
+  margin-bottom: 1.5rem;
+}
+.app-check-grid label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 400;
+  margin-bottom: 0;
+}
+.app-muted {
+  opacity: 0.75;
+  font-size: 1.4rem;
+}
